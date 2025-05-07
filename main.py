@@ -64,17 +64,17 @@ class TemplateForecaster(ForecastBot):
     async def run_research(self, question: MetaculusQuestion) -> str:
         async with self._concurrency_limiter:
             research = ""
-            if os.getenv("ASKNEWS_CLIENT_ID") and os.getenv("ASKNEWS_SECRET"):
-                research = await AskNewsSearcher().get_formatted_news_async(
-                    question.question_text
-                )
-            elif os.getenv("EXA_API_KEY"):
-                research = await self._call_exa_smart_searcher(
-                    question.question_text
-                )
-            elif os.getenv("PERPLEXITY_API_KEY"):
-                research = await self._call_perplexity(question.question_text)
-            elif os.getenv("OPENROUTER_API_KEY"):
+            # if os.getenv("ASKNEWS_CLIENT_ID") and os.getenv("ASKNEWS_SECRET"):
+            #     research = await AskNewsSearcher().get_formatted_news_async(
+            #         question.question_text
+            #     )
+            # elif os.getenv("EXA_API_KEY"):
+            #     research = await self._call_exa_smart_searcher(
+            #         question.question_text
+            #     )
+            # elif os.getenv("PERPLEXITY_API_KEY"):
+            #     research = await self._call_perplexity(question.question_text)
+            if os.getenv("OPENROUTER_API_KEY"):
                 research = await self._call_perplexity(
                     question.question_text, use_open_router=True
                 )
@@ -100,6 +100,8 @@ class TemplateForecaster(ForecastBot):
 
             Question:
             {question}
+
+            Try to find base rates/historical rates and any way that the current situation is different from history.
             """
         )  # NOTE: The metac bot in Q1 put everything but the question in the system prompt.
         if use_open_router:
@@ -163,6 +165,7 @@ class TemplateForecaster(ForecastBot):
             (b) The status quo outcome if nothing changed.
             (c) A brief description of a scenario that results in a No outcome.
             (d) A brief description of a scenario that results in a Yes outcome.
+            (e) Please consider the historical/base rate and make a guess if you are not sure.
 
             You write your rationale remembering that good forecasters put extra weight on the status quo outcome since the world changes slowly most of the time.
 
