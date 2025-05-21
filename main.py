@@ -74,20 +74,46 @@ class TemplateForecaster(ForecastBot):
             #     )
             # elif os.getenv("PERPLEXITY_API_KEY"):
             #     research = await self._call_perplexity(question.question_text)
-            if os.getenv("OPENROUTER_API_KEY"):
-                research = await self._call_perplexity(
-                    question.question_text, use_open_router=True
-                )
+            # if os.getenv("OPENROUTER_API_KEY"):
+            #     research = await self._call_perplexity(
+            #         question.question_text, use_open_router=True
+            #     )
+            if os.getenv("GEMINI_API_KEY"):
+                research = await self._call_gemini(
+                    question.question_text
+                    )
             else:
                 logger.warning(
                     f"No research provider found when processing question URL {question.page_url}. Will pass back empty string."
                 )
+
                 research = ""
             logger.info(
                 f"Found Research for URL {question.page_url}:\n{research}"
             )
             return research
+        
+    async def _call_gemini(self, question: str) -> str:
+        prompt = clean_indents(
+            f"""
+            You are an assistant to a superforecaster.
+            The superforecaster will give you a question they intend to forecast on.
+            To be a great assistant, you generate a concise but detailed rundown of the most relevant news, including if the question would resolve Yes or No based on current information.
+            You do not produce forecasts yourself.
 
+            Question:
+            {question}
+
+            Try to find base rates/historical rates and any way that the current situation is different from history.
+            """
+        )
+        model = GeneralLlm(
+            model="google/gemini-2.5-flash-preview-04-17",
+            temperature=0.1,
+            api_key=os.getenv("GEMINI_API_KEY"),
+        )
+        return await model.invoke(prompt)
+    
     async def _call_perplexity(
         self, question: str, use_open_router: bool = False
     ) -> str:
