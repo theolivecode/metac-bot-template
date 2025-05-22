@@ -74,11 +74,11 @@ class TemplateForecaster(ForecastBot):
             #     )
             # elif os.getenv("PERPLEXITY_API_KEY"):
             #     research = await self._call_perplexity(question.question_text)
-            # if os.getenv("OPENROUTER_API_KEY"):
-            #     research = await self._call_perplexity(
-            #         question.question_text, use_open_router=True
-            #     )
-            if os.getenv("GEMINI_API_KEY"):
+            if os.getenv("OPENROUTER_API_KEY"):
+                research = await self._call_perplexity(
+                    question.question_text, use_open_router=True
+                )
+            elif os.getenv("GEMINI_API_KEY"):
                 research = await self._call_gemini(
                     question.question_text
                     )
