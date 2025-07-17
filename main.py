@@ -413,6 +413,14 @@ if __name__ == "__main__":
                 MetaculusApi.CURRENT_QUARTERLY_CUP_ID, return_exceptions=True
             )
         )
+    elif run_mode == "market-pulse-25q3":
+        # TOURNAMENT_ID = 32773
+        template_bot.skip_previously_forecasted_questions = False
+        forecast_reports = asyncio.run(
+            template_bot.forecast_on_tournament(
+                32773, return_exceptions=True
+            )
+        )
     elif run_mode == "test_questions":
         # Example questions are a good way to test the bot's performance on a single question
         EXAMPLE_QUESTIONS = [
