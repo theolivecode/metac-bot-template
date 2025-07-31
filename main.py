@@ -64,56 +64,30 @@ class TemplateForecaster(ForecastBot):
     async def run_research(self, question: MetaculusQuestion) -> str:
         async with self._concurrency_limiter:
             research = ""
-            # if os.getenv("ASKNEWS_CLIENT_ID") and os.getenv("ASKNEWS_SECRET"):
-            #     research = await AskNewsSearcher().get_formatted_news_async(
-            #         question.question_text
-            #     )
-            # elif os.getenv("EXA_API_KEY"):
-            #     research = await self._call_exa_smart_searcher(
-            #         question.question_text
-            #     )
-            # elif os.getenv("PERPLEXITY_API_KEY"):
-            #     research = await self._call_perplexity(question.question_text)
-            if os.getenv("OPENROUTER_API_KEY"):
+            if os.getenv("ASKNEWS_CLIENT_ID") and os.getenv("ASKNEWS_SECRET"):
+                research = await AskNewsSearcher().get_formatted_news_async(
+                    question.question_text
+                )
+            elif os.getenv("EXA_API_KEY"):
+                research = await self._call_exa_smart_searcher(
+                    question.question_text
+                )
+            elif os.getenv("PERPLEXITY_API_KEY"):
+                research = await self._call_perplexity(question.question_text)
+            elif os.getenv("OPENROUTER_API_KEY"):
                 research = await self._call_perplexity(
                     question.question_text, use_open_router=True
                 )
-            elif os.getenv("GEMINI_API_KEY"):
-                research = await self._call_gemini(
-                    question.question_text
-                    )
             else:
                 logger.warning(
                     f"No research provider found when processing question URL {question.page_url}. Will pass back empty string."
                 )
-
                 research = ""
             logger.info(
                 f"Found Research for URL {question.page_url}:\n{research}"
             )
             return research
-        
-    async def _call_gemini(self, question: str) -> str:
-        prompt = clean_indents(
-            f"""
-            You are an assistant to a superforecaster.
-            The superforecaster will give you a question they intend to forecast on.
-            To be a great assistant, you generate a concise but detailed rundown of the most relevant news, including if the question would resolve Yes or No based on current information.
-            You do not produce forecasts yourself.
 
-            Question:
-            {question}
-
-            Try to find base rates/historical rates and any way that the current situation is different from history.
-            """
-        )
-        model = GeneralLlm(
-            model="google/gemini-2.5-flash-preview-04-17",
-            temperature=0.1,
-            api_key=os.getenv("GEMINI_API_KEY"),
-        )
-        return await model.invoke(prompt)
-    
     async def _call_perplexity(
         self, question: str, use_open_router: bool = False
     ) -> str:
@@ -126,8 +100,6 @@ class TemplateForecaster(ForecastBot):
 
             Question:
             {question}
-
-            Try to find base rates/historical rates and any way that the current situation is different from history.
             """
         )  # NOTE: The metac bot in Q1 put everything but the question in the system prompt.
         if use_open_router:
@@ -191,7 +163,6 @@ class TemplateForecaster(ForecastBot):
             (b) The status quo outcome if nothing changed.
             (c) A brief description of a scenario that results in a No outcome.
             (d) A brief description of a scenario that results in a Yes outcome.
-            (e) Please consider the historical/base rate and make a guess if you are not sure.
 
             You write your rationale remembering that good forecasters put extra weight on the status quo outcome since the world changes slowly most of the time.
 
@@ -387,15 +358,15 @@ if __name__ == "__main__":
         publish_reports_to_metaculus=True,
         folder_to_save_reports_to=None,
         skip_previously_forecasted_questions=True,
-        # llms={  # choose your model names or GeneralLlm llms here, otherwise defaults will be chosen for you
-        #     "default": GeneralLlm(
-        #         model="metaculus/anthropic/claude-3-5-sonnet-20241022",
-        #         temperature=0.3,
-        #         timeout=40,
-        #         allowed_tries=2,
-        #     ),
-        #     "summarizer": "openai/gpt-4o-mini",
-        # },
+        llms={  # choose your model names or GeneralLlm llms here, otherwise defaults will be chosen for you
+            "default": GeneralLlm(
+                model="openai/o3",
+                temperature=0.3,
+                timeout=40,
+                allowed_tries=2,
+            ),
+            "summarizer": "openai/gpt-4o-mini",
+        },
     )
 
     if run_mode == "tournament":
@@ -411,14 +382,6 @@ if __name__ == "__main__":
         forecast_reports = asyncio.run(
             template_bot.forecast_on_tournament(
                 MetaculusApi.CURRENT_QUARTERLY_CUP_ID, return_exceptions=True
-            )
-        )
-    elif run_mode == "market-pulse-25q3":
-        # TOURNAMENT_ID = 32773
-        template_bot.skip_previously_forecasted_questions = False
-        forecast_reports = asyncio.run(
-            template_bot.forecast_on_tournament(
-                32773, return_exceptions=True
             )
         )
     elif run_mode == "test_questions":
