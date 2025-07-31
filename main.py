@@ -337,18 +337,19 @@ if __name__ == "__main__":
     parser.add_argument(
         "--mode",
         type=str,
-        choices=["tournament", "quarterly_cup", "test_questions"],
+        choices=["tournament", "quarterly_cup", "test_questions", "market"],
         default="tournament",
         help="Specify the run mode (default: tournament)",
     )
     args = parser.parse_args()
-    run_mode: Literal["tournament", "quarterly_cup", "test_questions"] = (
+    run_mode: Literal["tournament", "quarterly_cup", "test_questions", "market"] = (
         args.mode
     )
     assert run_mode in [
         "tournament",
         "quarterly_cup",
         "test_questions",
+        "market",
     ], "Invalid run mode"
 
     template_bot = TemplateForecaster(
