@@ -3,7 +3,7 @@ name: Forecast on Market
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 */2 * * *" # runs every 30 minutes. Make sure to skip already forecasted questions!
+    - cron: "0 */2 * * *" # runs every 2 hours. Make sure to skip already forecasted questions!
 
 # Add concurrency group to prevent parallel runs
 concurrency:
