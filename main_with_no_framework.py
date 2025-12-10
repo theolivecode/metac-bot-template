@@ -277,11 +277,11 @@ async def call_llm(prompt: str, model: str = "anthropic/claude-sonnet-4.5", temp
 def run_research(question_details: dict, today: str) -> str:
     research = ""
     report_number = 1
-    if ASKNEWS_CLIENT_ID and ASKNEWS_SECRET:
-        query = question_details['title']
-        print(f"Calling ASKNEWS for {query}")
-        research += f"Research Report {report_number}:\n{call_asknews(query)}\n"
-        report_number += 1
+    # if ASKNEWS_CLIENT_ID and ASKNEWS_SECRET:
+    #     query = question_details['title']
+    #     print(f"Calling ASKNEWS for {query}")
+    #     research += f"Research Report {report_number}:\n{call_asknews(query)}\n"
+    #     report_number += 1
     # elif EXA_API_KEY:
     #     research = call_exa_smart_searcher(question)
     if PERPLEXITY_API_KEY:
