@@ -4,6 +4,11 @@ import logging
 from datetime import datetime
 from typing import Literal
 
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
 from forecasting_tools import (
     AskNewsSearcher,
     BinaryQuestion,
