@@ -33,10 +33,10 @@ class BotConfig:
 
     submit_prediction: bool = True
     use_example_questions: bool = False
-    num_runs_per_question: int = 3
+    num_runs_per_question: int = 1
     skip_previously_forecasted_questions: bool = True
     concurrent_requests_limit: int = 5
-    default_model: str = "anthropic/claude-sonnet-4.5"
+    default_model: str = "openai/gpt-5.2"
     default_temperature: float = 0.3
     research_model: str = "openai/o4-mini-deep-research"
     research_temperature: float = 0.3
@@ -55,6 +55,8 @@ class LLMConfig:
     claude_sonnet_45 = "anthropic/claude-sonnet-4.5"
     claude_opus_45 = "anthropic/claude-opus-4.5"
     o4_mini_deep_search = "openai/o4-mini-deep-research"
+    gpt_52 = "openai/gpt-5.2"
+    gemini_25_flash = "google/gemini-2.5-flash"
     
     # Local LLM settings
     local_llm_model: str = "Qwen/Qwen3-32B"
@@ -87,9 +89,9 @@ class MetaculusConfig:
 # Example questions for testing
 EXAMPLE_QUESTIONS = [
     # (question_id, post_id)
-    (578, 578),  # Human Extinction - Binary
+    # (578, 578),  # Human Extinction - Binary
     # (14333, 14333),  # Age of Oldest Human - Numeric
-    # (22427, 22427),  # Number of New Leading AI Labs - Multiple Choice
+    (22427, 22427),  # Number of New Leading AI Labs - Multiple Choice
     # (38195, 38880),  # Number of US Labor Strikes Due to AI in 2029 - Discrete
 ]
 

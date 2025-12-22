@@ -18,8 +18,6 @@ You are analyzing a forecasting question to identify its primary field or domain
 
 Question: {question}
 
-Field context (if provided): {field}
-
 Please classify this question into a specific field or domain (e.g., politics, economics, technology, international relations, public health, sports, entertainment, science, etc.).
 
 If a field context is already provided, validate it and provide a more specific sub-field if applicable.

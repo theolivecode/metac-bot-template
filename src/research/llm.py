@@ -8,7 +8,7 @@ import logging
 from typing import Any, Dict, Optional
 
 from .base import ResearchProvider
-from ..config import bot_config
+from ..config import bot_config, llm_config
 from ..utils import BaseLLMClient, LLMClient, LocalLLMClient
 from ..prompts import (
     RESEARCH_SYSTEM_PROMPT,
@@ -65,38 +65,44 @@ class LLMResearchProvider(ResearchProvider):
         """
         logger.info("=" * 20)
         logger.info("Running Multi-Step Research with LLM...")
-        logger.info(f"Model: {self.model}")
         logger.info(f"Research Question: '{question}'")
         logger.info("=" * 20)
 
         try:
-            # Extract field if provided in question_details
-            field_context = question_details.get("field", "") if question_details else ""
-
             # Step 1: Classify the question into a field
-            logger.info("\n[Step 1/5] Classifying question into field...")
-            field_classification = await self._classify_question(question, field_context)
+            logger.info("[Step 1/5] Classifying question into field...")
+            model = llm_config.gpt_52
+            logger.info(f"Model: {model}")
+            field_classification = await self._classify_question(question, model=model)
             logger.info(f"Field Classification:\n{field_classification}")
 
             # Step 2: Search for related entities or countries
-            logger.info("\n[Step 2/5] Searching for related entities and countries...")
-            entities = await self._search_entities(question, field_classification)
+            logger.info("[Step 2/5] Searching for related entities and countries...")
+            model = llm_config.o4_mini_deep_search
+            logger.info(f"Model: {model}")
+            entities = await self._search_entities(question, field_classification, model=model)
             logger.info(f"Entities Found:\n{entities}")
 
             # Step 3: Analyze personalities, approaches, and relationships
-            logger.info("\n[Step 3/5] Analyzing entity characteristics and relationships...")
-            entity_analysis = await self._analyze_entities(question, entities)
+            logger.info("[Step 3/5] Analyzing entity characteristics and relationships...")
+            model = llm_config.gpt_52
+            logger.info(f"Model: {model}")
+            entity_analysis = await self._analyze_entities(question, entities, model=model)
             logger.info(f"Entity Analysis:\n{entity_analysis}")
 
             # Step 4: Search for recent news
-            logger.info("\n[Step 4/5] Searching for recent news...")
-            news_summary = await self._search_news(question, field_classification, entities)
+            logger.info("[Step 4/5] Searching for recent news...")
+            model = llm_config.o4_mini_deep_search
+            logger.info(f"Model: {model}")
+            news_summary = await self._search_news(question, field_classification, entities, model=model)
             logger.info(f"News Summary:\n{news_summary}")
 
             # Step 5: Generate final comprehensive report
-            logger.info("\n[Step 5/5] Generating final comprehensive report...")
+            logger.info("[Step 5/5] Generating final comprehensive report...")
+            model = llm_config.gpt_52
+            logger.info(f"Model: {model}")
             final_report = await self._generate_final_report(
-                question, field_classification, entity_analysis, news_summary
+                question, field_classification, entity_analysis, news_summary, model=model
             )
 
             logger.info("\n======Research Report Start======")
@@ -109,7 +115,7 @@ class LLMResearchProvider(ResearchProvider):
             logger.error(f"Research failed: {e}")
             return f"Research could not be completed: {str(e)}"
 
-    async def _classify_question(self, question: str, field_context: str = "") -> str:
+    async def _classify_question(self, question: str, model: str) -> str:
         """
         Step 1: Classify the question into a field.
 
@@ -122,18 +128,17 @@ class LLMResearchProvider(ResearchProvider):
         """
         prompt = CLASSIFY_QUESTION_PROMPT.format(
             question=question,
-            field=field_context or "Not provided"
         )
 
         classification = await self.llm_client.call(
             prompt=prompt,
-            model=self.model,
+            model=model if model else self.model,
             temperature=self.temperature,
         )
 
         return classification
 
-    async def _search_entities(self, question: str, field_classification: str) -> str:
+    async def _search_entities(self, question: str, field_classification: str, model: str) -> str:
         """
         Step 2: Search for related entities or countries.
 
@@ -151,13 +156,13 @@ class LLMResearchProvider(ResearchProvider):
 
         entities = await self.llm_client.call(
             prompt=prompt,
-            model=self.model,
+            model=model if model else self.model,
             temperature=self.temperature,
         )
 
         return entities
 
-    async def _analyze_entities(self, question: str, entities: str) -> str:
+    async def _analyze_entities(self, question: str, entities: str, model: str) -> str:
         """
         Step 3: Analyze personalities, approaches, and relationships of entities.
 
@@ -175,13 +180,13 @@ class LLMResearchProvider(ResearchProvider):
 
         analysis = await self.llm_client.call(
             prompt=prompt,
-            model=self.model,
+            model=model if model else self.model,
             temperature=self.temperature,
         )
 
         return analysis
 
-    async def _search_news(self, question: str, field_classification: str, entities: str) -> str:
+    async def _search_news(self, question: str, field_classification: str, entities: str, model: str) -> str:
         """
         Step 4: Search for 10-20 recent top-ranked news.
 
@@ -201,7 +206,7 @@ class LLMResearchProvider(ResearchProvider):
 
         news = await self.llm_client.call(
             prompt=prompt,
-            model=self.model,
+            model=model if model else self.model,
             temperature=self.temperature,
         )
 
@@ -212,7 +217,8 @@ class LLMResearchProvider(ResearchProvider):
         question: str,
         field_classification: str,
         entity_analysis: str,
-        news_summary: str
+        news_summary: str,
+        model: str
     ) -> str:
         """
         Step 5: Generate final comprehensive report.
@@ -235,7 +241,7 @@ class LLMResearchProvider(ResearchProvider):
 
         report = await self.llm_client.call(
             prompt=prompt,
-            model=self.model,
+            model=model if model else self.model,
             temperature=self.temperature,
         )
 
